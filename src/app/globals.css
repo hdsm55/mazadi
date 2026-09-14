@@ -2,46 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Mazadi — Premium Design System
+   Source: ui-ux-pro-max (Luxury Auction Marketplace)
+   Palette: Premium black #1C1917 + gold accent #A16207 on warm
+   off-white #FAFAF9. Typography: Cormorant (display) + Montserrat.
+   ============================================================ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Brand — premium black + gold */
+    --background: 60 9% 98%;          /* #FAFAF9 warm off-white */
+    --foreground: 20 14% 4%;          /* #0C0A09 near-black */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --primary: 222 47% 11%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
+    --card-foreground: 20 14% 4%;
+    --primary: 24 10% 10%;            /* #1C1917 premium black */
+    --primary-foreground: 60 9% 98%;
+    --secondary: 30 6% 92%;           /* warm stone */
+    --secondary-foreground: 24 10% 10%;
+    --muted: 30 6% 94%;
+    --muted-foreground: 215 20% 34%;  /* #475569 */
+    --accent: 38 92% 33%;             /* #A16207 gold */
+    --accent-foreground: 60 9% 98%;
+    --destructive: 0 72% 51%;         /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 47% 11%;
-    --radius: 0.5rem;
+    --success: 152 61% 32%;           /* emerald-700 */
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;            /* amber-600 */
+    --warning-foreground: 0 0% 100%;
+    --border: 30 6% 83%;              /* #D6D3D1 */
+    --input: 30 6% 83%;
+    --ring: 38 92% 33%;               /* gold focus ring */
+    --radius: 0.75rem;
+
+    /* Elevation shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(12 10 9 / 0.04);
+    --shadow-md: 0 4px 12px -2px rgb(12 10 9 / 0.08);
+    --shadow-lg: 0 12px 32px -8px rgb(12 10 9 / 0.14);
+    --shadow-gold: 0 8px 24px -6px rgb(161 98 7 / 0.35);
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 10%;
-    --card-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 213 27% 84%;
+    --background: 24 10% 6%;         /* deep charcoal */
+    --foreground: 40 20% 96%;
+    --card: 24 10% 9%;
+    --card-foreground: 40 20% 96%;
+    --primary: 38 92% 60%;            /* brighter gold in dark */
+    --primary-foreground: 24 10% 6%;
+    --secondary: 24 8% 14%;
+    --secondary-foreground: 40 20% 96%;
+    --muted: 24 8% 14%;
+    --muted-foreground: 30 8% 62%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 24 10% 6%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 61% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 55%;
+    --warning-foreground: 24 10% 6%;
+    --border: 24 8% 20%;
+    --input: 24 8% 20%;
+    --ring: 38 92% 55%;
   }
 }
 
@@ -49,7 +71,99 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    background-color: hsl(var(--accent) / 0.2);
+  }
+}
+
+@layer components {
+  /* ---- Premium buttons ---- */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-all duration-200 hover:bg-accent/90 hover:shadow-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* ---- Section heading ---- */
+  .section-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-accent;
+  }
+  .section-title {
+    @apply font-serif text-3xl font-semibold tracking-tight text-foreground md:text-4xl;
+  }
+
+  /* ---- Live pulse dot ---- */
+  .live-dot {
+    @apply relative inline-flex h-2.5 w-2.5;
+  }
+  .live-dot::before {
+    content: "";
+    @apply absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75;
+  }
+  .live-dot::after {
+    content: "";
+    @apply relative inline-flex h-2.5 w-2.5 rounded-full bg-success;
+  }
+
+  /* ---- Gold divider ---- */
+  .gold-rule {
+    @apply h-px w-16 bg-gradient-to-r from-accent to-transparent;
+  }
+
+  /* ---- Card hover lift ---- */
+  .card-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  /* ---- Luxury gradient text ---- */
+  .text-gold-gradient {
+    background: linear-gradient(120deg, hsl(var(--accent)), hsl(38 92% 45%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+  .shadow-soft {
+    box-shadow: var(--shadow-md);
+  }
+  .shadow-lift {
+    box-shadow: var(--shadow-lg);
+  }
+  .font-serif {
+    font-family: var(--font-serif), Georgia, serif;
+  }
+  .font-sans {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

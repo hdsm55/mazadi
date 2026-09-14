@@ -1,9 +1,10 @@
 import { prisma } from "@/server/db/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatMoney, formatTimeRemaining } from "@/lib/utils";
+import { SectionHeader } from "@/components/ui/section-header";
+import { LotCard } from "@/components/lot-card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { LotStatus } from "@prisma/client";
-import Link from "next/link";
+import { Search } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -31,18 +32,19 @@ export default async function SearchPage({
   });
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Search</h1>
+    <div className="space-y-8">
+      <SectionHeader
+        eyebrow="Search"
+        title="Find your next lot"
+        description="Search across all live and upcoming auctions."
+      />
 
-      <form className="flex gap-2" method="get">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Search lots..."
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-        />
-        <select name="category" className="flex h-10 rounded-md border border-input bg-background px-3 text-sm">
+      <form className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft md:flex-row md:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input type="text" name="q" defaultValue={q} placeholder="Search lots..." className="pl-9" />
+        </div>
+        <select name="category" className="h-11 rounded-lg border border-input bg-background px-3 text-sm shadow-sm md:w-48">
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id} selected={c.id === category}>
@@ -50,7 +52,7 @@ export default async function SearchPage({
             </option>
           ))}
         </select>
-        <select name="status" className="flex h-10 rounded-md border border-input bg-background px-3 text-sm">
+        <select name="status" className="h-11 rounded-lg border border-input bg-background px-3 text-sm shadow-sm md:w-40">
           <option value="">All statuses</option>
           {Object.values(LotStatus).map((s) => (
             <option key={s} value={s} selected={s === status}>
@@ -58,33 +60,24 @@ export default async function SearchPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
+        <Button type="submit" variant="gold" className="shrink-0">
           Search
-        </button>
+        </Button>
       </form>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <p className="text-sm text-muted-foreground">
+        {lots.length} result{lots.length === 1 ? "" : "s"}
+      </p>
+
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {lots.map((lot) => (
-          <Link key={lot.id} href={`/lots/${lot.id}`}>
-            <Card className="h-full transition-shadow hover:shadow-md">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant={lot.status === LotStatus.LIVE ? "success" : "secondary"}>{lot.status}</Badge>
-                  <span className="text-xs text-muted-foreground">{lot.category?.name ?? "General"}</span>
-                </div>
-                <CardTitle className="text-lg">{lot.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-2xl font-bold">{formatMoney(lot.currentBidMinor, lot.currency)}</p>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{lot.bidCount} bids</span>
-                  <span className="tabular-nums">{formatTimeRemaining(lot.endAt)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <LotCard key={lot.id} lot={lot} />
         ))}
       </div>
+
+      {lots.length === 0 && (
+        <p className="text-muted-foreground">No lots match your search. Try different filters.</p>
+      )}
     </div>
   );
 }

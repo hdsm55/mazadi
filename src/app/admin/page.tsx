@@ -3,8 +3,11 @@ import { prisma } from "@/server/db/prisma";
 import { requireRole } from "@/server/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DashboardShell, StatCard, adminNav } from "@/components/dashboard-shell";
 import { Role } from "@prisma/client";
 import { ApproveSellerButton } from "@/components/approve-seller";
+import { Users, Gavel, Package, HandCoins, ScrollText, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -26,42 +29,37 @@ export default async function AdminDashboard() {
   });
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-
+    <DashboardShell title="Admin Dashboard" subtitle="Platform oversight and moderation" nav={adminNav} active="/admin">
+      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {[
-          ["Users", users],
-          ["Auctions", auctions],
-          ["Lots", lots],
-          ["Bids", bids],
-          ["Settlements", settlements],
-        ].map(([label, value]) => (
-          <Card key={label as string}>
-            <CardHeader>
-              <CardTitle className="text-sm text-muted-foreground">{label}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <StatCard label="Users" value={users} icon={Users} accent />
+        <StatCard label="Auctions" value={auctions} icon={Gavel} />
+        <StatCard label="Lots" value={lots} icon={Package} />
+        <StatCard label="Bids" value={bids} icon={HandCoins} />
+        <StatCard label="Settlements" value={settlements} icon={ShieldCheck} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Pending Seller Approvals</CardTitle>
+          <CardTitle className="text-xl">Pending Seller Approvals</CardTitle>
         </CardHeader>
         <CardContent>
           {pendingSellers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No pending approvals.</p>
+            <EmptyState
+              icon={<ShieldCheck className="h-8 w-8" aria-hidden />}
+              title="No pending approvals"
+              description="All seller applications have been reviewed."
+            />
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-border">
               {pendingSellers.map((s) => (
-                <li key={s.id} className="flex items-center justify-between border-b pb-2 text-sm">
-                  <span>{s.email}</span>
+                <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                  <div>
+                    <p className="font-medium text-foreground">{s.email}</p>
+                    <p className="text-xs text-muted-foreground">{s.name}</p>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{s.sellerStatus}</Badge>
+                    <Badge variant="warning">{s.sellerStatus}</Badge>
                     <ApproveSellerButton userId={s.id} />
                   </div>
                 </li>
@@ -73,19 +71,27 @@ export default async function AdminDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Audit Trail</CardTitle>
+          <CardTitle className="text-xl">Audit Trail</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
-            {events.map((e) => (
-              <li key={e.id} className="flex items-center justify-between border-b pb-2 text-sm">
-                <span className="font-medium">{e.type}</span>
-                <span className="text-muted-foreground">{e.createdAt.toISOString()}</span>
-              </li>
-            ))}
-          </ul>
+          {events.length === 0 ? (
+            <EmptyState
+              icon={<ScrollText className="h-8 w-8" aria-hidden />}
+              title="No events"
+              description="System events will appear here."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {events.map((e) => (
+                <li key={e.id} className="flex items-center justify-between py-3 text-sm">
+                  <span className="font-medium text-foreground">{e.type}</span>
+                  <span className="text-xs text-muted-foreground">{e.createdAt.toISOString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
-    </div>
+    </DashboardShell>
   );
 }
