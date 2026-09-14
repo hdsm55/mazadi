@@ -1,0 +1,411 @@
+// Mazadi — Prisma schema
+// Money is always stored as integer minor units (amount_minor) + currency. No floats.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ Users & Roles ============
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum SellerStatus {
+  REGISTERED
+  SELLER_APPLICATION
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  passwordHash  String
+  name          String
+  role          Role         @default(BUYER)
+  emailVerified Boolean      @default(false)
+  sellerStatus  SellerStatus @default(REGISTERED)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  bids          Bid[]
+  maxBids       MaxBid[]
+  auctions      Auction[]    @relation("SellerAuctions")
+  lots          Lot[]        @relation("SellerLots")
+  watchlist     Watchlist[]
+  notifications Notification[]
+  settlements   Settlement[] @relation("BuyerSettlements")
+  auditLogs     AuditLog[]
+}
+
+// ============ Auctions ============
+
+enum AuctionStatus {
+  DRAFT
+  PENDING_APPROVAL
+  SCHEDULED
+  LIVE
+  EXTENDED
+  ENDED
+  SETTLING
+  SETTLED
+  CANCELLED
+}
+
+enum AuctionType {
+  TIMED_ENGLISH
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Auction {
+  id                          String         @id @default(cuid())
+  tenantId                    String         @default("default")
+  sellerId                    String
+  seller                      User           @relation("SellerAuctions", fields: [sellerId], references: [id])
+  title                       String
+  description                 String?
+  type                        AuctionType    @default(TIMED_ENGLISH)
+  status                      AuctionStatus  @default(DRAFT)
+  startAt                     DateTime
+  endAt                       DateTime
+  timezone                    String         @default("UTC")
+  currency                    String         @default("USD")
+  antiSnipingEnabled          Boolean        @default(true)
+  antiSnipingWindowSeconds    Int            @default(120)
+  antiSnipingExtensionSeconds Int            @default(120)
+  visibility                  Visibility     @default(PUBLIC)
+  approvalStatus              ApprovalStatus @default(PENDING)
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
+
+  lots        Lot[]
+  bids        Bid[]
+  events      AuctionEvent[]
+  settlements Settlement[]
+
+  @@index([status])
+  @@index([sellerId])
+}
+
+// ============ Lots ============
+
+enum LotStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  SOLD
+  UNSOLD
+  PASSED
+  CANCELLED
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+}
+
+model Lot {
+  id                 String     @id @default(cuid())
+  auctionId          String
+  auction            Auction    @relation(fields: [auctionId], references: [id])
+  sellerId           String
+  seller             User       @relation("SellerLots", fields: [sellerId], references: [id])
+  title              String
+  description        String?
+  categoryId         String?
+  category           Category?  @relation(fields: [categoryId], references: [id])
+  condition          Condition  @default(GOOD)
+  startingPriceMinor Int
+  reservePriceMinor  Int?
+  buyNowPriceMinor   Int?
+  currency           String     @default("USD")
+  currentBidMinor    Int        @default(0)
+  currentBidderId    String?
+  bidCount           Int        @default(0)
+  position           Int        @default(0)
+  startAt            DateTime
+  endAt               DateTime
+  status             LotStatus  @default(DRAFT)
+  reserveMet         Boolean    @default(false)
+  winnerId           String?
+  winningBidId       String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  bids        Bid[]
+  maxBids     MaxBid[]
+  events      AuctionEvent[]
+  settlements Settlement[]
+  watchlist   Watchlist[]
+
+  @@index([auctionId])
+  @@index([status])
+  @@index([categoryId])
+}
+
+// ============ Bids ============
+
+enum BidType {
+  MANUAL
+  AUTO
+  PROXY
+  ADMIN
+  FLOOR
+  PHONE
+}
+
+enum BidStatus {
+  ACTIVE
+  OUTBID
+  WINNING
+  WON
+  CANCELLED
+}
+
+model Bid {
+  id              String     @id @default(cuid())
+  lotId           String
+  lot             Lot        @relation(fields: [lotId], references: [id])
+  auctionId       String
+  auction         Auction    @relation(fields: [auctionId], references: [id])
+  bidderId        String
+  bidder          User       @relation(fields: [bidderId], references: [id])
+  amountMinor     Int
+  currency        String
+  type            BidType    @default(MANUAL)
+  source          String     @default("web")
+  status          BidStatus  @default(ACTIVE)
+  sequence        Int
+  idempotencyKey  String?
+  createdAt       DateTime   @default(now())
+  metadata        Json?
+
+  // Monotonic per-lot sequence + idempotency uniqueness
+  @@unique([lotId, sequence])
+  @@unique([lotId, idempotencyKey])
+  @@index([bidderId])
+  @@index([auctionId])
+}
+
+// ============ Max Bids (Proxy) ============
+
+enum MaxBidStatus {
+  ACTIVE
+  OUTBID
+  WON
+  CANCELLED
+}
+
+model MaxBid {
+  id             String       @id @default(cuid())
+  lotId          String
+  lot            Lot          @relation(fields: [lotId], references: [id])
+  bidderId       String
+  bidder         User         @relation(fields: [bidderId], references: [id])
+  maxAmountMinor Int
+  currency       String
+  status         MaxBidStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([lotId, bidderId])
+  @@index([lotId])
+}
+
+// ============ Categories ============
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  parentId  String?
+  createdAt DateTime @default(now())
+
+  lots    Lot[]
+  parent  Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+}
+
+// ============ Watchlist ============
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  lotId     String
+  lot       Lot      @relation(fields: [lotId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, lotId])
+}
+
+// ============ Event Ledger (Audit Trail) ============
+
+enum EventType {
+  AuctionCreated
+  AuctionPublished
+  LotAdded
+  BidPlaced
+  BidRejected
+  AutoBidPlaced
+  ReserveMet
+  AuctionExtended
+  AuctionClosed
+  WinnerSelected
+  PaymentPending
+  PaymentCompleted
+  SettlementCompleted
+  DisputeOpened
+}
+
+model AuctionEvent {
+  id        String    @id @default(cuid())
+  auctionId String?
+  auction   Auction?  @relation(fields: [auctionId], references: [id])
+  lotId     String?
+  lot       Lot?      @relation(fields: [lotId], references: [id])
+  type      EventType
+  payload   Json?
+  createdAt DateTime  @default(now())
+
+  @@index([auctionId])
+  @@index([lotId])
+}
+
+// ============ Settlements & Payments ============
+
+enum SettlementStatus {
+  PENDING_PAYMENT
+  PAID
+  SETTLED
+  CANCELLED
+}
+
+model Settlement {
+  id          String           @id @default(cuid())
+  lotId       String
+  lot         Lot              @relation(fields: [lotId], references: [id])
+  auctionId   String
+  auction     Auction          @relation(fields: [auctionId], references: [id])
+  buyerId     String
+  buyer       User             @relation("BuyerSettlements", fields: [buyerId], references: [id])
+  sellerId    String
+  winningBidId String
+  amountMinor Int
+  currency    String
+  buyerPremiumMinor Int        @default(0)
+  sellerCommissionMinor Int    @default(0)
+  status      SettlementStatus @default(PENDING_PAYMENT)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  payments Payment[]
+
+  @@unique([lotId])
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
+  CANCELLED
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  settlementId String
+  settlement   Settlement    @relation(fields: [settlementId], references: [id])
+  amountMinor  Int
+  currency     String
+  status       PaymentStatus @default(PENDING)
+  provider     String        @default("mock")
+  providerRef  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([settlementId])
+}
+
+// ============ Notifications ============
+
+enum NotificationType {
+  OUTBID
+  WINNING
+  AUCTION_ENDING
+  AUCTION_EXTENDED
+  AUCTION_WON
+  PAYMENT_REQUIRED
+  SOLD
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+// ============ Audit Log ============
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+}
+
+// ============ Outbox (reliable event publishing) ============
+
+model Outbox {
+  id        String   @id @default(cuid())
+  topic     String
+  payload   Json
+  status    String   @default("PENDING") // PENDING | PUBLISHED
+  createdAt DateTime @default(now())
+  publishedAt DateTime?
+
+  @@index([status])
+}

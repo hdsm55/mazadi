@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mazadi-postgres
+    environment:
+      POSTGRES_USER: mazadi
+      POSTGRES_PASSWORD: mazadi_dev_password
+      POSTGRES_DB: mazadi
+    ports:
+      - "5438:5432"
+    volumes:
+      - mazadi_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mazadi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mazadi-redis
+    ports:
+      - "6384:6379"
+    volumes:
+      - mazadi_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: mazadi-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: mazadi
+      MINIO_ROOT_PASSWORD: mazadi_dev_password
+    ports:
+      - "9003:9000"
+      - "9006:9001"
+    volumes:
+      - mazadi_miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: mazadi-meilisearch
+    environment:
+      MEILI_MASTER_KEY: mazadi_dev_master_key
+      MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "7703:7700"
+    volumes:
+      - mazadi_meilidata:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mazadi_pgdata:
+  mazadi_redisdata:
+  mazadi_miniodata:
+  mazadi_meilidata:
