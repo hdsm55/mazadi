@@ -4,6 +4,7 @@ import { prisma } from "@/server/db/prisma";
 import { closeLot } from "@/server/domain/auction/auction-close";
 import { dispatchOutbox } from "@/server/realtime/outbox";
 import { notifyWinner, notifySold, notifyPaymentRequired } from "@/server/domain/notification/notification";
+import { ensureSearchIndex, reindexAllLots } from "@/server/search";
 
 const connection = { host: "localhost", port: 6384 };
 
@@ -51,6 +52,24 @@ async function sweepExpiredLots() {
 
 setInterval(sweepExpiredLots, 5000);
 setInterval(() => dispatchOutbox(), 1000);
+
+// Search index: ensure settings once, then keep the index in sync with the DB.
+// Reindexing is cheap at this scale and guarantees the search page reflects
+// seed + runtime changes without a separate indexing pipeline.
+let searchReady = false;
+async function syncSearchIndex() {
+  try {
+    if (!searchReady) {
+      await ensureSearchIndex();
+      searchReady = true;
+    }
+    await reindexAllLots();
+  } catch (err) {
+    console.error("[mazadi-worker] search sync failed:", err);
+  }
+}
+syncSearchIndex();
+setInterval(syncSearchIndex, 30_000);
 
 console.log("[mazadi-worker] started");
 
