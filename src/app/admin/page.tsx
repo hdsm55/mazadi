@@ -4,6 +4,7 @@ import { requireRole } from "@/server/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Role } from "@prisma/client";
+import { ApproveSellerButton } from "@/components/approve-seller";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,10 @@ export default async function AdminDashboard() {
               {pendingSellers.map((s) => (
                 <li key={s.id} className="flex items-center justify-between border-b pb-2 text-sm">
                   <span>{s.email}</span>
-                  <Badge variant="secondary">{s.sellerStatus}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{s.sellerStatus}</Badge>
+                    <ApproveSellerButton userId={s.id} />
+                  </div>
                 </li>
               ))}
             </ul>

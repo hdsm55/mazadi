@@ -167,3 +167,16 @@ export async function setMaxBidAction(formData: FormData) {
     return { error: "Failed to set max bid." };
   }
 }
+
+export async function approveSellerAction(userId: string, prevState: { error?: string; success?: boolean } | null, formData: FormData) {
+  await requireRole([Role.ADMIN]);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { sellerStatus: "APPROVED", role: Role.SELLER },
+  });
+  await prisma.auditLog.create({
+    data: { actorId: userId, action: "SELLER_APPROVED", entity: "User", entityId: userId },
+  });
+  revalidatePath("/admin");
+  return { success: true };
+}
