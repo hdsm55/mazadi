@@ -34,6 +34,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^2.6.0",
+    "ws": "^8.21.3",
     "zod": "^3.24.1",
     "zod-validation-error": "^3.4.0"
   },
@@ -48,6 +49,7 @@
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.1",
     "prisma": "^6.19.3",
