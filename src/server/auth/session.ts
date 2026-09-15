@@ -13,6 +13,11 @@ export interface SessionUser {
   name: string;
   role: "BUYER" | "SELLER" | "ADMIN";
   sellerStatus: string;
+  phone: string | null;
+  phoneVerified: boolean;
+  kycStatus: string;
+  creditLimitMinor: number;
+  riskSuspended: boolean;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -54,6 +59,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     name: session.user.name,
     role: session.user.role,
     sellerStatus: session.user.sellerStatus,
+    phone: session.user.phone,
+    phoneVerified: session.user.phoneVerified,
+    kycStatus: session.user.kycStatus,
+    creditLimitMinor: session.user.creditLimitMinor,
+    riskSuspended: session.user.riskSuspended,
   };
 }
 

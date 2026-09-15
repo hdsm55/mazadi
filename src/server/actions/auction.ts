@@ -5,8 +5,10 @@ import { prisma } from "@/server/db/prisma";
 import { requireRole, requireUser } from "@/server/auth/session";
 import { placeBid, setMaxBid, BidError } from "@/server/domain/auction/bid-engine";
 import { toMinor } from "@/server/domain/money/money";
+import { checkRateLimit } from "@/server/domain/trust/rate-limit";
 import { AuctionStatus, LotStatus, ApprovalStatus, Role, Condition } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 const createAuctionSchema = z.object({
   title: z.string().min(3),
@@ -132,6 +134,23 @@ export async function placeBidAction(formData: FormData) {
   const amount = Number(formData.get("amount"));
   const idempotencyKey = String(formData.get("idempotencyKey") ?? crypto.randomUUID());
 
+  // Rate limit the bid endpoint (per user + IP). Audit the decision.
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const rl = checkRateLimit(user.id, ip);
+  if (!rl.allowed) {
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        action: "BID_RATE_LIMITED",
+        entity: "Bid",
+        entityId: lotId,
+        metadata: { retryAfterMs: rl.retryAfterMs },
+      },
+    });
+    return { error: `Too many bids. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.` };
+  }
+
   try {
     const result = await placeBid({
       lotId,
@@ -139,6 +158,9 @@ export async function placeBidAction(formData: FormData) {
       amountMinor: toMinor(amount),
       currency: "USD",
       idempotencyKey,
+    });
+    await prisma.auditLog.create({
+      data: { actorId: user.id, action: "BID_PLACED", entity: "Bid", entityId: lotId, metadata: { amountMinor: toMinor(amount) } },
     });
     revalidatePath(`/lots/${lotId}`);
     return { success: true, result };
@@ -170,6 +192,14 @@ export async function setMaxBidAction(formData: FormData) {
 
 export async function approveSellerAction(userId: string, prevState: { error?: string; success?: boolean } | null, formData: FormData) {
   await requireRole([Role.ADMIN]);
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return { error: "User not found." };
+
+  // Trust & Safety: full APPROVED requires KYC verified.
+  if (target.kycStatus !== "VERIFIED") {
+    return { error: "Seller KYC must be VERIFIED before full approval." };
+  }
+
   await prisma.user.update({
     where: { id: userId },
     data: { sellerStatus: "APPROVED", role: Role.SELLER },

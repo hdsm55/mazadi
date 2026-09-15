@@ -26,16 +26,44 @@ enum SellerStatus {
   REJECTED
 }
 
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DepositStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  REFUNDED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  passwordHash  String
-  name          String
-  role          Role         @default(BUYER)
-  emailVerified Boolean      @default(false)
-  sellerStatus  SellerStatus @default(REGISTERED)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  email            String       @unique
+  passwordHash     String
+  name             String
+  role             Role         @default(BUYER)
+  emailVerified    Boolean      @default(false)
+  sellerStatus     SellerStatus @default(REGISTERED)
+  // Trust & Safety (V1)
+  phone            String?
+  phoneVerified    Boolean      @default(false)
+  creditLimitMinor Int          @default(0)
+  kycStatus        KycStatus    @default(UNVERIFIED)
+  kycLevel         Int          @default(0)
+  riskSuspended    Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   bids          Bid[]
   maxBids       MaxBid[]
@@ -46,6 +74,40 @@ model User {
   settlements   Settlement[] @relation("BuyerSettlements")
   auditLogs     AuditLog[]
   sessions      Session[]
+  deposits      BidderDeposit[]
+  riskFlags     RiskFlag[]
+}
+
+// ============ Trust & Safety (V1) ============
+
+// Bidder deposit / credit limit. A bidder must have either a CONFIRMED deposit
+// or a sufficient credit limit to place a bid (see bid-engine).
+model BidderDeposit {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  amountMinor Int
+  currency    String        @default("USD")
+  status      DepositStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// Basic fraud flag: rapid bidding, high bid volume in a short window, etc.
+model RiskFlag {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  kind      String
+  level     RiskLevel @default(MEDIUM)
+  message   String
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([kind])
 }
 
 model Session {

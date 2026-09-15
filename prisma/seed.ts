@@ -151,6 +151,8 @@ async function main() {
         name: sellerNames[i],
         role: Role.SELLER,
         sellerStatus: "APPROVED",
+        kycStatus: "VERIFIED",
+        kycLevel: 1,
       },
     });
     sellers.push(s);
@@ -160,7 +162,15 @@ async function main() {
   const bidders: { id: string }[] = [];
   for (let i = 0; i < 10; i++) {
     const b = await prisma.user.create({
-      data: { email: `bidder${i + 1}@mazadi.com`, passwordHash: pw, name: `Bidder ${i + 1}`, role: Role.BUYER },
+      data: {
+        email: `bidder${i + 1}@mazadi.com`,
+        passwordHash: pw,
+        name: `Bidder ${i + 1}`,
+        role: Role.BUYER,
+        phone: `+1555000${String(i + 1).padStart(4, "0")}`,
+        phoneVerified: true,
+        creditLimitMinor: toMinor(1000000), // $1,000,000 credit limit for demo bidders
+      },
     });
     bidders.push(b);
   }
@@ -201,7 +211,7 @@ async function main() {
       reservePriceMinor: toMinor(20000),
       currency: "USD",
       startAt: new Date(now - 2 * HOUR),
-      endAt: new Date(now + 134_000), // ~2:14 remaining
+      endAt: new Date(now + 10 * 60_000), // ~10 min remaining — keeps the live countdown visible
       status: LotStatus.LIVE,
     },
   });

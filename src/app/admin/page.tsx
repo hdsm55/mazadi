@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardShell, StatCard, adminNav } from "@/components/dashboard-shell";
 import { Role } from "@prisma/client";
 import { ApproveSellerButton } from "@/components/approve-seller";
+import { KycStatusButton, CreditLimitForm } from "@/components/trust-forms";
 import { Users, Gavel, Package, HandCoins, ScrollText, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,10 @@ export default async function AdminDashboard() {
                   <div>
                     <p className="font-medium text-foreground">{s.email}</p>
                     <p className="text-xs text-muted-foreground">{s.name}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge variant={s.kycStatus === "VERIFIED" ? "success" : "warning"}>{s.kycStatus}</Badge>
+                      <KycStatusButton userId={s.id} status="VERIFIED" />
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="warning">{s.sellerStatus}</Badge>

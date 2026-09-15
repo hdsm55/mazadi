@@ -7,7 +7,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardShell, StatCard, buyerNav } from "@/components/dashboard-shell";
 import { formatMoney } from "@/lib/utils";
 import { BidStatus } from "@prisma/client";
-import { Gavel, Trophy, Bell } from "lucide-react";
+import { Gavel, Trophy, Bell, ShieldCheck, Wallet } from "lucide-react";
+import { PhoneVerificationForm, DepositForm } from "@/components/trust-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,12 @@ export default async function BuyerDashboard() {
   const outbidCount = myBids.filter((b) => b.status === BidStatus.OUTBID).length;
   const totalSpent = won.reduce((sum, s) => sum + s.amountMinor, 0);
 
+  const deposits = await prisma.bidderDeposit.findMany({
+    where: { userId: user.id, status: "CONFIRMED" },
+    orderBy: { createdAt: "desc" },
+  });
+  const totalDepositMinor = deposits.reduce((sum, d) => sum + d.amountMinor, 0);
+
   return (
     <DashboardShell title="Buyer Dashboard" subtitle={`Welcome back, ${user.name}`} nav={buyerNav} active="/buyer">
       {/* Stats */}
@@ -46,6 +53,38 @@ export default async function BuyerDashboard() {
         <StatCard label="Outbid" value={outbidCount} icon={Gavel} />
         <StatCard label="Total spent" value={formatMoney(totalSpent)} icon={Trophy} accent />
       </div>
+
+      {/* Trust & Safety */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <ShieldCheck className="h-5 w-5 text-accent" aria-hidden />
+            Trust &amp; Safety
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6 lg:grid-cols-2">
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Phone verification</p>
+            <PhoneVerificationForm phoneVerified={user.phoneVerified} />
+            <p className="text-xs text-muted-foreground">
+              Verified bidders are trusted with higher limits.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Bidder deposit</p>
+            <div className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-accent" aria-hidden />
+              <span className="text-sm text-muted-foreground">
+                Confirmed deposit: <span className="font-semibold text-foreground">{formatMoney(totalDepositMinor)}</span>
+              </span>
+            </div>
+            <DepositForm />
+            <p className="text-xs text-muted-foreground">
+              A confirmed deposit or credit limit is required to bid.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

@@ -1,6 +1,8 @@
 import { Prisma, BidType, BidStatus, LotStatus, AuctionStatus, MaxBidStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
 import { nextValidBidAmount } from "@/server/domain/money/money";
+import { checkBidderEligibility } from "@/server/domain/trust/deposit";
+import { evaluateBidRisk } from "@/server/domain/trust/risk";
 
 export interface PlaceBidInput {
   lotId: string;
@@ -45,7 +47,9 @@ export class BidError extends Error {
       | "INVALID_AMOUNT"
       | "INVALID_INCREMENT"
       | "CURRENCY_MISMATCH"
-      | "DUPLICATE_BID",
+      | "DUPLICATE_BID"
+      | "BIDDER_SUSPENDED"
+      | "INSUFFICIENT_FUNDS",
   ) {
     super(message);
     this.name = "BidError";
@@ -62,6 +66,18 @@ export class BidError extends Error {
  *   auto-bids for them at the increment above the incoming bid, up to their max.
  */
 export async function placeBid(input: PlaceBidInput): Promise<BidResult> {
+  // Trust & Safety pre-checks (outside the locked transaction — they don't
+  // need the lot row lock and would otherwise add round-trips that contend
+  // with concurrent bids).
+  const risk = await evaluateBidRisk({ userId: input.bidderId, lotId: input.lotId });
+  if (risk.blocked) {
+    throw new BidError("Bidder is suspended", "BIDDER_SUSPENDED");
+  }
+  const eligibility = await checkBidderEligibility(input.bidderId, input.amountMinor);
+  if (!eligibility.allowed) {
+    throw new BidError("Insufficient deposit or credit limit", "INSUFFICIENT_FUNDS");
+  }
+
   return prisma.$transaction(async (tx) => {
     // 1. Lock the lot row with FOR UPDATE (serializes concurrent bids on
     //    the same lot — Prisma's findUnique does NOT apply row locks).
