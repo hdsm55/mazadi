@@ -7,8 +7,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardShell, StatCard, buyerNav } from "@/components/dashboard-shell";
 import { formatMoney } from "@/lib/utils";
 import { BidStatus } from "@prisma/client";
-import { Gavel, Trophy, Bell, ShieldCheck, Wallet } from "lucide-react";
+import { Gavel, Trophy, Bell, ShieldCheck, Wallet, Eye, ArrowRight } from "lucide-react";
 import { PhoneVerificationForm, DepositForm } from "@/components/trust-forms";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,31 @@ export default async function BuyerDashboard() {
         <StatCard label="Winning" value={winningCount} icon={Gavel} />
         <StatCard label="Outbid" value={outbidCount} icon={Gavel} />
         <StatCard label="Total spent" value={formatMoney(totalSpent)} icon={Trophy} accent />
+      </div>
+
+      {/* Quick links */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { href: "/buyer/my-bids", label: "My Bids", icon: Gavel },
+          { href: "/buyer/watchlist", label: "Watchlist", icon: Eye },
+          { href: "/buyer/payments", label: "Payments", icon: Wallet },
+          { href: "/buyer/profile", label: "Profile & Security", icon: ShieldCheck },
+        ].map((q) => {
+          const Icon = q.icon;
+          return (
+            <Link
+              key={q.href}
+              href={q.href}
+              className="group flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-soft transition-colors hover:border-accent/40"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Icon className="h-4 w-4 text-accent" aria-hidden />
+                {q.label}
+              </span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </Link>
+          );
+        })}
       </div>
 
       {/* Trust & Safety */}

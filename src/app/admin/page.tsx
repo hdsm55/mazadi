@@ -8,7 +8,8 @@ import { DashboardShell, StatCard, adminNav } from "@/components/dashboard-shell
 import { Role } from "@prisma/client";
 import { ApproveSellerButton } from "@/components/approve-seller";
 import { KycStatusButton, CreditLimitForm } from "@/components/trust-forms";
-import { Users, Gavel, Package, HandCoins, ScrollText, ShieldCheck } from "lucide-react";
+import { Users, Gavel, Package, HandCoins, ScrollText, ShieldCheck, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,31 @@ export default async function AdminDashboard() {
         <StatCard label="Lots" value={lots} icon={Package} />
         <StatCard label="Bids" value={bids} icon={HandCoins} />
         <StatCard label="Settlements" value={settlements} icon={ShieldCheck} />
+      </div>
+
+      {/* Quick links */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { href: "/admin/users", label: "Users", icon: Users },
+          { href: "/admin/sellers", label: "Sellers", icon: ShieldCheck },
+          { href: "/admin/auctions", label: "Auctions", icon: Gavel },
+          { href: "/admin/moderation", label: "Moderation & Risk", icon: ShieldCheck },
+        ].map((q) => {
+          const Icon = q.icon;
+          return (
+            <Link
+              key={q.href}
+              href={q.href}
+              className="group flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-soft transition-colors hover:border-accent/40"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Icon className="h-4 w-4 text-accent" aria-hidden />
+                {q.label}
+              </span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </Link>
+          );
+        })}
       </div>
 
       <Card>

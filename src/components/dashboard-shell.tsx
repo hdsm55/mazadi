@@ -12,6 +12,7 @@ import {
   Package,
   BarChart,
   ScrollText,
+  Trophy,
 } from "lucide-react";
 
 export interface DashboardNavItem {
@@ -101,28 +102,43 @@ export function StatCard({
 
 export const buyerNav: DashboardNavItem[] = [
   { label: "Overview", href: "/buyer", icon: LayoutDashboard },
-  { label: "My Bids", href: "/buyer", icon: Gavel },
-  { label: "Watchlist", href: "/buyer", icon: Eye },
-  { label: "Payments", href: "/payments", icon: Wallet },
-  { label: "Notifications", href: "/buyer", icon: Bell },
-  { label: "Profile", href: "/buyer", icon: User },
+  { label: "My Bids", href: "/buyer/my-bids", icon: Gavel },
+  { label: "Winning", href: "/buyer/winning", icon: Trophy },
+  { label: "Outbid", href: "/buyer/outbid", icon: Gavel },
+  { label: "Won", href: "/buyer/won", icon: Trophy },
+  { label: "Watchlist", href: "/buyer/watchlist", icon: Eye },
+  { label: "Payments", href: "/buyer/payments", icon: Wallet },
+  { label: "Notifications", href: "/buyer/notifications", icon: Bell },
+  { label: "Profile & Security", href: "/buyer/profile", icon: User },
 ];
 
 export const sellerNav: DashboardNavItem[] = [
   { label: "Overview", href: "/seller", icon: LayoutDashboard },
-  { label: "Auctions", href: "/seller", icon: Gavel },
-  { label: "Lots", href: "/seller", icon: Package },
-  { label: "Payments", href: "/seller", icon: Wallet },
-  { label: "Reports", href: "/seller", icon: BarChart },
+  { label: "Auctions", href: "/seller/auctions", icon: Gavel },
+  { label: "Lots", href: "/seller/lots", icon: Package },
+  { label: "Drafts", href: "/seller/drafts", icon: Package },
+  { label: "Orders & Payments", href: "/seller/orders", icon: Wallet },
+  { label: "Payouts", href: "/seller/payouts", icon: Wallet },
+  { label: "Customers", href: "/seller/customers", icon: User },
+  { label: "Team", href: "/seller/team", icon: User },
+  { label: "Reports", href: "/seller/reports", icon: BarChart },
+  { label: "Settings", href: "/seller/settings", icon: ScrollText },
 ];
 
 export const adminNav: DashboardNavItem[] = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Users", href: "/admin", icon: User },
-  { label: "Sellers", href: "/admin", icon: Store },
-  { label: "Auctions", href: "/admin", icon: Gavel },
-  { label: "Lots", href: "/admin", icon: Package },
-  { label: "Payments", href: "/admin", icon: Wallet },
-  { label: "Moderation", href: "/admin", icon: ShieldCheck },
-  { label: "Audit Logs", href: "/admin", icon: ScrollText },
+  { label: "Users", href: "/admin/users", icon: User },
+  { label: "Sellers", href: "/admin/sellers", icon: Store },
+  { label: "Auction Houses", href: "/admin/auction-houses", icon: Store },
+  { label: "Auctions", href: "/admin/auctions", icon: Gavel },
+  { label: "Lots", href: "/admin/lots", icon: Package },
+  { label: "Categories", href: "/admin/categories", icon: Package },
+  { label: "Payments", href: "/admin/payments", icon: Wallet },
+  { label: "Payouts", href: "/admin/payouts", icon: Wallet },
+  { label: "Commissions", href: "/admin/commissions", icon: Wallet },
+  { label: "Disputes", href: "/admin/disputes", icon: ShieldCheck },
+  { label: "Moderation & Risk", href: "/admin/moderation", icon: ShieldCheck },
+  { label: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },
+  { label: "Reports", href: "/admin/reports", icon: BarChart },
+  { label: "Settings", href: "/admin/settings", icon: ScrollText },
 ];

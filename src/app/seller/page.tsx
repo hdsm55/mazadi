@@ -7,7 +7,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardShell, StatCard, sellerNav } from "@/components/dashboard-shell";
 import { CreateAuctionForm, CreateLotForm, PublishAuctionButton } from "@/components/seller-forms";
 import { Role } from "@prisma/client";
-import { Gavel, Package, Wallet, BarChart } from "lucide-react";
+import { Gavel, Package, Wallet, BarChart, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,31 @@ export default async function SellerDashboard() {
         <StatCard label="Live now" value={liveAuctions} icon={Gavel} />
         <StatCard label="Drafts" value={draftAuctions} icon={Package} />
         <StatCard label="Total lots" value={totalLots} icon={BarChart} />
+      </div>
+
+      {/* Quick links */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { href: "/seller/auctions", label: "Auctions", icon: Gavel },
+          { href: "/seller/lots", label: "Lots", icon: Package },
+          { href: "/seller/orders", label: "Orders & Payments", icon: Wallet },
+          { href: "/seller/reports", label: "Reports", icon: BarChart },
+        ].map((q) => {
+          const Icon = q.icon;
+          return (
+            <Link
+              key={q.href}
+              href={q.href}
+              className="group flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-soft transition-colors hover:border-accent/40"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Icon className="h-4 w-4 text-accent" aria-hidden />
+                {q.label}
+              </span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </Link>
+          );
+        })}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

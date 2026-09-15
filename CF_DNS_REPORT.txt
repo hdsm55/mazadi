@@ -1,0 +1,55 @@
+TOTAL_ZONES 12
+ZONE athathk-ymn.store 6dedf65439a29256cd6904d485182140 active
+  HOST_RECORDS 2
+  REC A athathk-ymn.store -> 217.217.227.120 proxy=True
+  REC CNAME www.athathk-ymn.store -> athathk-ymn.store proxy=True
+ZONE camphofin.online f35c01c75742ae21b0872f55e44411a0 active
+  HOST_RECORDS 2
+  REC A camphofin.online -> 217.217.227.120 proxy=True
+  REC CNAME www.camphofin.online -> camphofin.online proxy=True
+ZONE ghayah.online 37852981b43960a48adc7196be92c5b1 active
+  HOST_RECORDS 2
+  REC A ghayah.online -> 217.217.227.120 proxy=True
+  REC A www.ghayah.online -> 217.217.227.120 proxy=True
+ZONE lamha.cam f4def22009212993577424716ddb8f44 active
+  HOST_RECORDS 2
+  REC A lamha.cam -> 217.217.227.120 proxy=True
+  REC A www.lamha.cam -> 217.217.227.120 proxy=True
+ZONE masdar.site 9417327c6933276e6518c9b953ab14cf active
+  HOST_RECORDS 2
+  REC A masdar.site -> 217.217.227.120 proxy=True
+  REC CNAME www.masdar.site -> masdar.site proxy=True
+ZONE primestack.digital 41e51c16b359a6e29e66152ce13b67f9 active
+  HOST_RECORDS 2
+  REC A primestack.digital -> 217.217.227.120 proxy=True
+  REC CNAME www.primestack.digital -> primestack.digital proxy=True
+ZONE rihlak.online 274a655878fb9697bc2c14ff4b2ce823 active
+  HOST_RECORDS 2
+  REC A rihlak.online -> 217.217.227.120 proxy=True
+  REC CNAME www.rihlak.online -> rihlak.online proxy=True
+ZONE sada.click 699cb11e6068e80de8b108b993e5f456 active
+  HOST_RECORDS 2
+  REC A sada.click -> 217.217.227.120 proxy=True
+  REC A www.sada.click -> 217.217.227.120 proxy=True
+ZONE sanadk.online 757001ff045337b06b0f56dd92c84a7e active
+  HOST_RECORDS 1
+  REC A sanadk.online -> 217.217.227.120 proxy=True
+ZONE serveqr.online 93f8e137cd9a45e4634d3adb69101395 active
+  HOST_RECORDS 8
+  REC A mx1.mail.serveqr.online -> 217.217.227.120 proxy=False
+  REC A mx2.mail.serveqr.online -> 217.217.227.120 proxy=False
+  REC A routes.mail.serveqr.online -> 217.217.227.120 proxy=False
+  REC A rp.mail.serveqr.online -> 217.217.227.120 proxy=False
+  REC A serveqr.online -> 217.217.227.120 proxy=True
+  REC A track.mail.serveqr.online -> 217.217.227.120 proxy=False
+  REC CNAME psrp.serveqr.online -> rp.mail.serveqr.online proxy=False
+  REC CNAME www.serveqr.online -> serveqr.online proxy=True
+ZONE silatech.online bab855686306bf2d5667a1afe152cd85 active
+  HOST_RECORDS 2
+  REC A silatech.online -> 217.217.227.120 proxy=True
+  REC CNAME www.silatech.online -> silatech.online proxy=True
+ZONE telegauto.online a6d823a9d1a58cb95c6eebdc9acd046d active
+  HOST_RECORDS 2
+  REC A telegauto.online -> 217.217.227.120 proxy=True
+  REC CNAME www.telegauto.online -> telegauto.online proxy=True
+ALLEnd
